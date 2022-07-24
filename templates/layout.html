@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Blog Editor</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-black.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+<style>
+html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
+.w3-sidebar {
+  z-index: 3;
+  width: 250px;
+  top: 43px;
+  bottom: 0;
+  height: inherit;
+}
+h1,h2,h3,h4,h5,h6 { color:#009688!important}
+.w3-main a  { color:#009688!important}
+table { border-collapse: collapse; width: 100%;}
+table input {border: none; width: 100%}
+td { border: 1px solid black;}
+textarea {min-height: 200px;}
+</style>
+<script>
+  $().ready(function () {
+    $("#file-add").validate({
+      // in 'rules' user have to specify all the constraints for respective fields
+      rules: {
+        date: {
+          required: true,
+          dateISO: true
+        },
+        title: "required",
+        filecontent: "required",
+      },
+      // in 'messages' user have to specify message as per rules
+      messages: {
+        title: " Title is required",
+        date: "Date is required. Format: YYYY-MM-DD",
+      }
+    });
+  });
+
+</script>
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="w3-top">
+  <div class="w3-bar w3-theme w3-top w3-left-align w3-large">
+    <a href="/" class="w3-bar-item w3-button w3-theme-l1">Posts</a>
+    <a href="/add" class="w3-bar-item w3-button w3-hide-small w3-hover-white">New Post</a>
+  </div>
+</div>
+
+
+<!-- Main content: shift it to the right by 250 pixels when the sidebar is visible -->
+<div class="w3-main" >
+
+  <div class="w3-row w3-padding-64">
+    <div class="w3-twothird w3-container">
+      <h1 class="w3-text-teal">Blog Editor</h1>
+      <div>
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+
+
+
+
+<!-- END MAIN -->
+</div>
+
+
+</body>
+</html>

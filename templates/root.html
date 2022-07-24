@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h4>Files in blog</h4>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class=flashes>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+<table>
+  <thead>
+    <tr>
+      <td>
+        <b>Post</b>
+      </td>
+      <td>
+        <b>Actions</b>
+      </td>
+    </tr>
+  </thead>
+  <tbody>
+    {% for file in files %}
+      <tr><td>{{file.split(ldir)[1].split('.md')[0]}}</td><td><a href="/edit?f={{file}}">[Edit]</a>{{directory}} <a onclick="javascript:return confirm('Are you sure?\n\nDELETE {{file.split(ldir)[1].split('.md')[0]}}?')" href="/delete?f={{file}}">[Delete]</a>{{directory}}</td></tr>
+
+    {% endfor %}
+  </tbody>
+</table>
+  <br/>
+{% endblock %}

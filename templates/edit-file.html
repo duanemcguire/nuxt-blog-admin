@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% block content %}
+<h4>Edit {{filename}}</h4><hr/>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+      {% for message in messages %}
+          <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+<form method="post" action="/post-file" name="file-edit" id="file-add" enctype="multipart/form-data">
+<table>
+  <thead>
+    <col style="width: 25%;">
+    <col style="width: 75%;">
+  </thead>
+  {% for k,v in md.Meta.items() %}
+    {% if k != 'photoset' and  k != 'photocaption' %}
+      {% if k == 'id' or k == 'path' %}
+        <input type="hidden" value='{{v[0].strip('"')}}' name="{{k}}">
+      {% else %}
+        <tr>
+          <td>{{k}}</td>
+          <td><input type="text" value='{{v[0].strip('"')}}' name="{{k}}">
+        </tr>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+</table>
+<hr/>
+  Post Content:<BR/>
+  <textarea style="width: 100%; height: 60%" name="filecontent">{{filetext}}</textarea>
+  <input type="hidden" value="{{path}}" name="path">
+  <input type="submit" value="Save All">
+  <hr>
+  <h4>Photos</h4>
+  {% if photoset %}
+    {% for photodef in photoset %}
+      <div style = "border: 2px solid black; margin-bottom: 10px; ">
+        <img style="max-width: 50%" src="/static/img/{{photodef['path'].split('/')[-1]}}" /><BR/>
+        <input type="hidden" name="myphoto_path" value="{{photodef['path']}}">
+        Caption:
+        {% if 'caption' in photodef.keys() %}
+          <input type="text" style="max-width: 43%; width: 600px;"  name="myphoto_caption" value="{{photodef['caption']}}" />
+        {% else %}
+          <input type="text" style="max-width: 43%; width: 600px;"  name="myphoto_caption" value="" />
+        {% endif %}
+        <div style="float:right">
+          <input type="checkbox" name="myphoto_delete" value="{{photodef['path']}}">Delete this photo?!&nbsp;
+        </div>
+        <div>
+          <input type="radio" name="myphoto_thumbnail" id="{{photodef['path']}}"
+            {%if 'thumbnail' in photodef.keys() and photodef['thumbnail'] == 'True' %}
+                value = "{{photodef['path']}}" checked
+            {% else %}
+                value = "{{photodef['path']}}"
+            {% endif %}
+          /> <label for="{{photodef['path']}}"> Thumbnail</label>
+        </div>
+      </div>
+    {% endfor %}
+    <hr>
+  {% endif %}
+
+
+  <h5>Add photo:</h5>
+  <input type="file" name="__new_photo">
+  <BR/>caption: <input style="max-width: 43%; width: 600px;"  name="__new_photo__caption" value="" />
+  <BR/><input type="submit" value="Save All">
+</form>
+{% endblock %}

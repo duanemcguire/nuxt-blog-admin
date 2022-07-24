@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block content %}
+<h4>Edit {{filename}}</h4><hr/>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+      {% for message in messages %}
+          <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+<form method="post" action="post-new" name="file-add" id="file-add" enctype="multipart/form-data">
+<table>
+  <thead>
+    <col style="width: 25%;">
+    <col style="width: 75%;">
+  </thead>
+  {% for k in meta_keys.split(',') %}
+    <tr>
+      <td>{{k}}</td>
+      <td><input type="text" name="{{k}}"
+        {% if k == 'date' %}
+        value="{{thisDay}}"
+        {% endif %}
+      />
+    </tr>
+  {% endfor %}
+</table>
+<hr/>
+  Post Content:<BR/>
+  <textarea style="width: 100%; height: 60%" name="filecontent">{{filetext}}</textarea>
+  <input type="submit" value="Save All">
+  <hr>
+  <h4>Photos</h4>
+  <h5>Add photo:</h5>
+  <input type="file" name="__new_photo">
+  <BR/>caption: <input style="max-width: 43%; width: 600px;"  name="__new_photo__caption" value="" />
+  <BR/><input type="submit" value="Save All">
+</form>
+{% endblock %}
