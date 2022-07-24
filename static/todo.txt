@@ -1,8 +1,0 @@
-# TO DO
-create thumbnail
-option: delete photo from set
-remove extraneous flash
-category and tag select options
-date validation
-title validation (no apostrophe)
-Deploy
