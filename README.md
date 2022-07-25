@@ -1,3 +1,5 @@
+ ## nuxt-blog-admin
+ 
  Web app to update a nuxt blog repository on Github.
  The app is compatable with the blog, git@github.com:duanemcguire/duaneblog.git
    and others that I have put together with nuxt.
