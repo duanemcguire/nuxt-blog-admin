@@ -51,8 +51,11 @@ photodest = "static/img"
 
 # Used by PIL image manager
 app.config["SECRET_KEY"] = os.urandom(24)
+print(f"app.root_path: {app.root_path}")
+print(f"photodest: {photodest}")
 app.config["UPLOADED_PHOTOS_DEST"] = app.root_path + "/" + photodest
 photodestfull = app.config["UPLOADED_PHOTOS_DEST"]
+print(f"photodestfull: {photodestfull}")
 photos = UploadSet("photos", IMAGES)
 configure_uploads(app, photos)
 # ----------End Configuration-------------------------
@@ -78,7 +81,7 @@ def process_new_photo(upImage, upCaption, path, photoset, makeThumb=False):
     f = open(f"{photodestfull}/{filename}", "rb")
     thispic = f.read()
     repo = g.get_repo(repository)
-    repo.create_file(f"static{photoInstance['path']}", "app", thispic, branch="main")
+    repo.create_file(photoInstance['path'], "app", thispic, branch="main")
     if makeThumb:
         create_thumbnail(filename)
         photoInstance["thumbnail"] = "True"
@@ -95,7 +98,7 @@ def create_thumbnail(filename):
     newThumb = True
     try:
         contents = repo.get_contents(
-            f"static{blog['imagepath']}/thumb/{filename}", ref="main"
+            f"{blog['imagepath']}/thumb/{filename}", ref="main"
         )
         if contents:
             # the thumbnail is already present.
@@ -112,7 +115,7 @@ def create_thumbnail(filename):
             fn = filepath.split("/").pop
             try:
                 contents = repo.get_contents(
-                    f"static{blog['imagepath']}/thumb/{fn}", ref="main"
+                    f"{blog['imagepath']}/thumb/{fn}", ref="main"
                 )
                 repo.delete_file(contents.path, "app", contents.sha, branch="main")
             except Exception as err:
@@ -139,7 +142,7 @@ def create_thumbnail(filename):
         thispic = f.read()
         try:
             repo.create_file(
-                f"static{blog['imagepath']}/thumb/{filename}",
+                f"{blog['imagepath']}/thumb/{filename}",
                 "app",
                 thispic,
                 branch="main",
@@ -190,20 +193,19 @@ def github_save_file(path):
     filename = path.split("/")[-1]
     photo_path = f"{photodestfull}/{filename}"
     if not exists(photo_path):
-        try:
-            g = Github(gToken)
-            g_path = f"static{path}"
-            repo = g.get_repo(repository)
-            content_encoded = repo.get_contents(
-                urllib.parse.quote(g_path), ref="main"
-            ).content
-            content = base64.b64decode(content_encoded)
-            filename = path.split("/")[-1]
-            f = open(f"{photodestfull}/{filename}", "wb")
-            f.write(content)
-            f.close()
-        except:
-            flash(f"{g_path} is missing ")
+        #try:
+        g = Github(gToken)
+        repo = g.get_repo(repository)
+        content_encoded = repo.get_contents(
+            urllib.parse.quote(path), ref="main"
+        ).content
+        content = base64.b64decode(content_encoded)
+        filename = path.split("/")[-1]
+        f = open(f"{photodestfull}/{filename}", "wb")
+        f.write(content)
+        f.close()
+        #except:
+        #    flash(f"{g_path} is missing ")
     return True
 
 
@@ -215,7 +217,7 @@ def delete_images(deleteList):
     for img in deleteList:
         # delete listed Image
         try:
-            contents = repo.get_contents(f"static{img}", ref="main")
+            contents = repo.get_contents(f"{img}", ref="main")
             repo.delete_file(contents.path, "app", contents.sha, branch="main")
         except:
             None
@@ -225,7 +227,7 @@ def delete_images(deleteList):
         pathOnly = "/".join(pathList)
         thumbPath = pathOnly + "/" + "thumb" + "/" + fn
         try:
-            contents = repo.get_contents(f"static{thumbPath}", ref="main")
+            contents = repo.get_contents(f"{thumbPath}", ref="main")
             repo.delete_file(contents.path, "app", contents.sha, branch="main")
         except:
             None
@@ -235,7 +237,8 @@ def delete_images(deleteList):
 def load_working_dir(photoset):
     # save photos from github to the local working directory  (photodest)
     for p in photoset:
-        #        print(p)
+        print(p)
+        print(photodest)
         github_save_file(p["path"])
     return True
 
@@ -273,6 +276,7 @@ def edit_file(path=""):
     if path == "":
         path = request.args.get("f")
     init_working_dir(path)
+    print(f"path:  {path}")
     ldir = blog["dir"] + "/"
     filename = path.split(ldir)[1].split(".md")[0]
     file = repo.get_contents(path)
@@ -437,14 +441,14 @@ def delete_file(path=""):
         # delete the images
         for photodef in photoset:
             try:
-                repoPath = f"static{photodef['path']}"
+                repoPath = photodef['path']
                 file = repo.get_contents(repoPath)
                 contents = repo.get_contents(repoPath, ref="main")
                 repo.delete_file(contents.path, "app", contents.sha, branch="main")
                 if "thumbnail" in photodef.keys():
                     if photodef["thumbnail"] == "True":
                         fn = photodef["path"].split("/").pop()
-                        repoPath = f"static{blog['imagepath']}/thumb/{fn}"
+                        repoPath = f"{blog['imagepath']}/thumb/{fn}"
                         contents = repo.get_contents(repoPath, ref="main")
                         repo.delete_file(
                             contents.path, "app", contents.sha, branch="main"

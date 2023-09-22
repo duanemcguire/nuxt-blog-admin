@@ -1,1 +1,1 @@
-content/blog/10060-week-1.md
+pages/blog/bb.md
