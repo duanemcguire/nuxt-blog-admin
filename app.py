@@ -263,6 +263,19 @@ def get_repo():
 
     return render_template("root.html", **locals())
 
+def get_pages():
+    # get a list of main page content (markdown files) from the repository
+    # display in the root.html template
+
+    files = []
+    repo = g.get_repo(repository)
+    # print(repo.name)
+    contents = repo.get_contents(blog["dir"])
+    for content_file in contents:
+        files.append(content_file.path)
+    ldir = blog["dir"] + "/"
+
+    return render_template("root.html", **locals())
 
 @app.route("/edit")
 def edit_file(path=""):
