@@ -277,10 +277,10 @@ def get_pages():
     files = []
     repo = g.get_repo(repository)
     # print(repo.name)
-    contents = repo.get_contents(blog["dir"])
+    contents = repo.get_contents(misc_content["dir"])
     for content_file in contents:
         files.append(content_file.path)
-    ldir = blog["dir"] + "/"
+    ldir = misc_content["dir"] + "/"
 
     return render_template("root.html", **locals())
 
