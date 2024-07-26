@@ -42,8 +42,7 @@ blog = {
 
 misc_content = {
     "dir": environ.get("BLOG_REPO_MISC_CONTENT_DIR"),
-    "repo_image_path": environ.get("REPO_BLOG_IMAGE_PATH"),
-    "web_image_path": environ.get("BLOG_WEB_IMAGE_PATH")
+    "imagepath": environ.get("BLOG_IMAGE_PATH"),
 }
 
 # markdown meta keys available by default
