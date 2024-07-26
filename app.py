@@ -41,7 +41,7 @@ blog = {
 }
 
 misc_content = {
-    "dir": environ.get("BLOG_REPO_MISC_CONTENT_DIR"),
+    "dir": environ.get("BLOG_MISC_CONTENT_DIR"),
     "imagepath": environ.get("BLOG_IMAGE_PATH"),
 }
 
@@ -275,13 +275,14 @@ def get_pages():
 
     files = []
     repo = g.get_repo(repository)
-    # print(repo.name)
+    print(repo.name)
+    print(misc_content)
     contents = repo.get_contents(misc_content["dir"])
     for content_file in contents:
         files.append(content_file.path)
     ldir = misc_content["dir"] + "/"
 
-    return render_template("root.html", **locals())
+    return render_template("pages.html", **locals())
 
 @app.route("/edit")
 def edit_file(path=""):
@@ -304,9 +305,30 @@ def edit_file(path=""):
         if k == "photoset":
             photoset = json.loads(v[0])
             load_working_dir(photoset)
-
     return render_template("edit-file.html", **locals())
 
+@app.route("/edit-page")
+def edit_page(path=""):
+    # read the specified markdown file
+    # display filecontent and meta data for editing in edit-file.html
+
+    repo = g.get_repo(repository)
+    if path == "":
+        path = request.args.get("f")
+    init_working_dir(path)
+    ldir = misc_content["dir"] + "/"
+    filename = path.split(ldir)[1].split(".md")[0]
+    file = repo.get_contents(path)
+    file_content = file.decoded_content.decode()
+    fcsplit = file_content.split("---")
+    filetext = fcsplit[len(fcsplit) - 1].strip()
+    md = markdown.Markdown(extensions=["meta"])
+    html = md.convert(file_content)
+    for k, v in md.Meta.items():
+        if k == "title":
+            title = v[0]
+
+    return render_template("edit-page.html", **locals())
 
 @app.route("/add")
 def add_file():
@@ -436,6 +458,38 @@ def post_file():
     repo.update_file(path, "saved by app", fc, file.sha)
     flash(path + " repo updated")
     return edit_file(path)
+
+@app.route("/post-page", methods=["POST"])
+def post_page():
+    # read form data from edit-page.html
+    # update the markdown file in the repository
+
+    repo = g.get_repo(repository)
+    path = request.form["path"]
+    file = repo.get_contents(path)
+    filecontent = request.form["filecontent"]
+    # initialize the filecontent with the markdown metadata separator
+    fc = "---\n"
+
+    # build the metadata string for the markdown file
+    for k, v in request.form.items():
+        if k != "filecontent" and k.find("myphoto") == -1 and k.find("__") == -1:
+            if ((" " in v) or (k == "date")) and v[0] != "[":
+                v = '"' + v + '"'
+            fc = fc + k + ": " + v + "\n"
+    #
+    fc = fc + "---\n"
+    fc = fc + filecontent
+
+    # update the markdown file in the repository
+    repo.update_file(path, "saved by app", fc, file.sha)
+    flash(path + " repo updated")
+    return edit_file(path)
+
+
+
+
+
 
 
 @app.route("/delete")

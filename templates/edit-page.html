@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+<h4>Edit {{filename}}</h4><hr/>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+      {% for message in messages %}
+          <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+<form method="post" action="/post-page" name="page-edit" id="page-add" enctype="multipart/form-data">
+  Page Content:<BR/>
+  <textarea style="width: 100%; height: 60%" name="filecontent">{{filetext}}</textarea>
+  <input type="hidden" value="{{title}}" name="title">
+  <input type="submit" value="Save">
+</form>
+{% endblock %}
