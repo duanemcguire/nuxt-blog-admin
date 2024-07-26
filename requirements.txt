@@ -76,7 +76,7 @@ netifaces==0.11.0
 networkx==3.2.1
 notify2==0.3
 numpy==1.26.2
-oauthlib==3.2.0
+oauthlib==3.2.2
 ocrmypdf==16.0.2
 olefile==0.46
 opencv-python==4.8.1.78
