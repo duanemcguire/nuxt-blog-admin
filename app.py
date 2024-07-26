@@ -269,6 +269,7 @@ def get_repo():
 
     return render_template("root.html", **locals())
 
+@app.route("/pages")
 def get_pages():
     # get a list of main page content (markdown files) from the repository
     # display in the root.html template
