@@ -35,7 +35,7 @@ Flask-FlatPages==0.8.1
 Flask-HTTPAuth==4.8.0
 Flask-Markdown==0.3
 Frozen-Flask==0.18
-future==0.18.2
+future==0.18.3
 grip==4.6.2
 gyp==0.1
 httplib2==0.20.2
