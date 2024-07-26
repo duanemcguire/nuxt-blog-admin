@@ -10,10 +10,13 @@
     </ul>
   {% endif %}
 {% endwith %}
-<form method="post" action="/post-page" name="page-edit" id="page-add" enctype="multipart/form-data">
+<form method="post" action="/post-page" name="page-edit" id="page-add" >
   Page Content:<BR/>
   <textarea style="width: 100%; height: 60%" name="filecontent">{{filetext}}</textarea>
-  <input type="hidden" value="{{title}}" name="title">
+  {% for attribute in attributes %}
+    <input type="hidden" name="{{attribute[0]}}" value="{{attribute[1].strip('"')}}">
+  {% endfor %}  
+  <input  type="hidden" name="path" value="{{path}}">
   <input type="submit" value="Save">
 </form>
 {% endblock %}

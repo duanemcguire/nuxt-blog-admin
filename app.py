@@ -313,8 +313,12 @@ def edit_page(path=""):
     # display filecontent and meta data for editing in edit-file.html
 
     repo = g.get_repo(repository)
+    attributes = []
+    print("path",path)
     if path == "":
         path = request.args.get("f")
+    print("path",path)
+
     init_working_dir(path)
     ldir = misc_content["dir"] + "/"
     filename = path.split(ldir)[1].split(".md")[0]
@@ -325,8 +329,9 @@ def edit_page(path=""):
     md = markdown.Markdown(extensions=["meta"])
     html = md.convert(file_content)
     for k, v in md.Meta.items():
-        if k == "title":
-            title = v[0]
+        if k != "path":
+            attributes.append((k,v[0]))        
+
 
     return render_template("edit-page.html", **locals())
 
@@ -484,7 +489,7 @@ def post_page():
     # update the markdown file in the repository
     repo.update_file(path, "saved by app", fc, file.sha)
     flash(path + " repo updated")
-    return edit_file(path)
+    return edit_page(path)
 
 
 
