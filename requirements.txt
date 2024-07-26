@@ -40,7 +40,7 @@ grip==4.6.2
 gyp==0.1
 httplib2==0.20.2
 humanize==4.10.0
-idna==3.4
+idna==3.7
 imageio==2.33.1
 img2pdf==0.5.1
 importlib-metadata==4.10.0
