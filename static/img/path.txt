@@ -1,1 +1,1 @@
-pages/blog/bb.md
+pages/blog/george.md

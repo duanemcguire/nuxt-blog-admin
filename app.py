@@ -1,3 +1,7 @@
+## This branch,  "flask-ver" is BROKEN!
+## WHAT A mess. 
+
+
 # ------------------------------------------------------
 # Web app to update a nuxt blog repository on Github.
 # The app is compatable with the blog, git@github.com:duanemcguire/duaneblog.git
@@ -5,6 +9,12 @@
 # By linking the repository to a netlify deploy this app opens
 #   admin to the non-techie and the lazy techie.
 # ------------------------------------------------------
+
+
+
+
+
+
 
 from flask import Flask, flash, render_template, request
 from flask_uploads import IMAGES, UploadSet, configure_uploads
@@ -14,48 +24,56 @@ import os, glob, base64
 from os.path import exists
 from os import environ
 import logging
-import sys
 import json
 import markdown
-from datetime import date, datetime
 from github import Github
 from PIL import Image
 import shortuuid
 from inflection import parameterize
 import time
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
 # -------------Configuration-------------------------
+load_dotenv()
 # github api token saved as environment variable
-gToken = environ.get("GTOKEN")
+gToken = environ.get("BLOG_GTOKEN")
 
 # repository name saved as environment variable
-repository = environ.get("REPO")
+repository = environ.get("BLOG_REPO")
+print(f"repository: {repository}")
 
 # dir references the content directory of blog posts
 # for duaneblog, that is "content/blog"
 blog = {
-    "dir": environ.get("BLOG_CONTENT_DIR"),
-    "imagepath": environ.get("BLOG_IMAGE_PATH"),
+    "dir": environ.get("BLOG_REPO_CONTENT_DIR"),
+    "repo_image_path": environ.get("REPO_BLOG_IMAGE_PATH"),
+    "web_image_path": environ.get("BLOG_WEB_IMAGE_PATH")
+}
+misc_contnet = {
+    "dir": environ.get("BLOG_REPO_MISC_CONTENT_DIR"),
+    "repo_image_path": environ.get("REPO_BLOG_IMAGE_PATH"),
+    "web_image_path": environ.get("BLOG_WEB_IMAGE_PATH")
 }
 
 # markdown meta keys available by default
 # e.g. title, date, category, tags
-default_meta_keys = environ.get("DEFAULT_META_KEYS")
+default_meta_keys = environ.get("BLOG_DEFAULT_META_KEYS")
 
 g = Github(gToken)
+print(gToken)
 # location of local photo directory to temporarily stash images
 # while editing a post
-photodest = "static/img"
+local_photo_dest = "static/img"
 
 # Used by PIL image manager
 app.config["SECRET_KEY"] = os.urandom(24)
 print(f"app.root_path: {app.root_path}")
-print(f"photodest: {photodest}")
-app.config["UPLOADED_PHOTOS_DEST"] = app.root_path + "/" + photodest
-photodestfull = app.config["UPLOADED_PHOTOS_DEST"]
-print(f"photodestfull: {photodestfull}")
+print(f"local_photo_dest: {local_photo_dest}")
+app.config["UPLOADED_PHOTOS_DEST"] = app.root_path + "/" + local_photo_dest
+local_photo_dest_full = app.config["UPLOADED_PHOTOS_DEST"]
+print(f"local_photo_dest_full: {local_photo_dest_full}")
 photos = UploadSet("photos", IMAGES)
 configure_uploads(app, photos)
 # ----------End Configuration-------------------------
@@ -64,7 +82,7 @@ configure_uploads(app, photos)
 def process_new_photo(upImage, upCaption, path, photoset, makeThumb=False):
     # Handle uploaded photo
     filename = photos.save(upImage)
-    image = Image.open(f"{photodestfull}/{filename}")
+    image = Image.open(f"{local_photo_dest_full}/{filename}")
     ratio = image.size[0] / image.size[1]
     w = 800
     h = int(w / ratio)
@@ -72,13 +90,13 @@ def process_new_photo(upImage, upCaption, path, photoset, makeThumb=False):
     filename = shortuuid.uuid() + "." + filename.split(".")[-1]
 
     # save to local file stash
-    resized.save(f"{photodestfull}/{filename}")
+    resized.save(f"{local_photo_dest_full}/{filename}")
     photoInstance = {}
-    photoInstance["path"] = f"{blog['imagepath']}/{filename}"
+    photoInstance["path"] = f"{blog['web_image_path']}/{filename}"
     photoInstance["caption"] = upCaption
 
     # save new photo to github
-    f = open(f"{photodestfull}/{filename}", "rb")
+    f = open(f"{local_photo_dest_full}/{filename}", "rb")
     thispic = f.read()
     repo = g.get_repo(repository)
     repo.create_file(photoInstance['path'], "app", thispic, branch="main")
@@ -98,7 +116,7 @@ def create_thumbnail(filename):
     newThumb = True
     try:
         contents = repo.get_contents(
-            f"{blog['imagepath']}/thumb/{filename}", ref="main"
+            f"{blog['repo_image_path']}/thumb/{filename}", ref="main"
         )
         if contents:
             # the thumbnail is already present.
@@ -109,20 +127,20 @@ def create_thumbnail(filename):
     if newThumb:
         # one thumbnail per blog post.  Delete all from local thumb dir
         # delete matching names from repo
-        filelist = glob.glob(f"{photodestfull}/thumb/*")
+        filelist = glob.glob(f"{local_photo_dest_full}/thumb/*")
         for filepath in filelist:
             os.remove(filepath)
             fn = filepath.split("/").pop
             try:
                 contents = repo.get_contents(
-                    f"{blog['imagepath']}/thumb/{fn}", ref="main"
+                    f"{blog['repo_image_path']}/thumb/{fn}", ref="main"
                 )
                 repo.delete_file(contents.path, "app", contents.sha, branch="main")
             except Exception as err:
                 flash(f"Error while deleting unneeded thumbnail: {err}")
 
         # resize the image
-        image = Image.open(f"{photodestfull}/{filename}")
+        image = Image.open(f"{local_photo_dest_full}/{filename}")
         ratio = image.size[0] / image.size[1]
         w = 320
         h = int(w / ratio)
@@ -135,14 +153,14 @@ def create_thumbnail(filename):
             newimg = resized.crop((left, top, right, bottom))
             newsize = (320, 240)
             resized = newimg.resize(newsize)
-        resized.save(f"{photodestfull}/thumb/{filename}")
+        resized.save(f"{local_photo_dest_full}/thumb/{filename}")
 
         # save the thumbnail in the repository
-        f = open(f"{photodestfull}/thumb/{filename}", "rb")
+        f = open(f"{local_photo_dest_full}/thumb/{filename}", "rb")
         thispic = f.read()
         try:
             repo.create_file(
-                f"{blog['imagepath']}/thumb/{filename}",
+                f"{blog['repo_image_path']}/thumb/{filename}",
                 "app",
                 thispic,
                 branch="main",
@@ -158,7 +176,7 @@ def init_working_dir(path):
     # files are wiped when we begin editing a different markdown file
 
     # path.txt contains the path of the current post's markdown file
-    path_text_file = f"{photodestfull}/path.txt"
+    path_text_file = f"{local_photo_dest_full}/path.txt"
     last_path = ""
     if exists(path_text_file):
         f = open(path_text_file, "r")
@@ -168,7 +186,7 @@ def init_working_dir(path):
         # Re-initialize the directory
 
         # remove the existing images
-        filelist = glob.glob(photodestfull + "/*")
+        filelist = glob.glob(local_photo_dest_full + "/*")
         for filepath in filelist:
             if not os.path.isdir(filepath):
                 os.remove(filepath)
@@ -179,7 +197,7 @@ def init_working_dir(path):
         f.close()
 
         # remove the existing thumbnail(s)
-        thumbpath = f"{photodestfull}/thumb"
+        thumbpath = f"{local_photo_dest_full}/thumb"
         filelist = glob.glob(thumbpath + "/*")
         for filepath in filelist:
             os.remove(filepath)
@@ -191,7 +209,7 @@ def github_save_file(path):
     # Save photo from repository to photo directory
 
     filename = path.split("/")[-1]
-    photo_path = f"{photodestfull}/{filename}"
+    photo_path = f"{local_photo_dest_full}/{filename}"
     if not exists(photo_path):
         #try:
         g = Github(gToken)
@@ -201,7 +219,7 @@ def github_save_file(path):
         ).content
         content = base64.b64decode(content_encoded)
         filename = path.split("/")[-1]
-        f = open(f"{photodestfull}/{filename}", "wb")
+        f = open(f"{local_photo_dest_full}/{filename}", "wb")
         f.write(content)
         f.close()
         #except:
@@ -235,10 +253,10 @@ def delete_images(deleteList):
 
 
 def load_working_dir(photoset):
-    # save photos from github to the local working directory  (photodest)
+    # save photos from github to the local working directory  (local_photo_dest)
     for p in photoset:
         print(p)
-        print(photodest)
+        print(local_photo_dest)
         github_save_file(p["path"])
     return True
 
@@ -254,6 +272,20 @@ def build_path(title):
 @app.route("/")
 def get_repo():
     # get a list of posts (markdown files) from the repository
+    # display in the root.html template
+
+    files = []
+    repo = g.get_repo(repository)
+    # print(repo.name)
+    contents = repo.get_contents(misc_content["dir"])
+    for content_file in contents:
+        files.append(content_file.path)
+    ldir = misc_content["dir"] + "/"
+
+    return render_template("root.html", **locals())
+@app.route("/pages")
+def get_pages():
+    # get a list of main page content (markdown files) from the repository
     # display in the root.html template
 
     files = []
@@ -448,7 +480,7 @@ def delete_file(path=""):
                 if "thumbnail" in photodef.keys():
                     if photodef["thumbnail"] == "True":
                         fn = photodef["path"].split("/").pop()
-                        repoPath = f"{blog['imagepath']}/thumb/{fn}"
+                        repoPath = f"{blog['repo_image_path']}/thumb/{fn}"
                         contents = repo.get_contents(repoPath, ref="main")
                         repo.delete_file(
                             contents.path, "app", contents.sha, branch="main"
