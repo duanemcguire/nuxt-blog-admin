@@ -29,7 +29,7 @@ docopt==0.6.2
 docutils==0.20.1
 duplicity==0.8.21
 fasteners==0.14.1
-Flask==2.0.2
+Flask==2.2.5
 Flask-Excel==0.0.7
 Flask-FlatPages==0.8.1
 Flask-HTTPAuth==4.8.0
