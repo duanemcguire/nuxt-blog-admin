@@ -52,7 +52,7 @@ default_meta_keys = environ.get("DEFAULT_META_KEYS")
 g = Github(gToken)
 # location of local photo directory to temporarily stash images
 # while editing a post
-photodest = "static/imgages"
+photodest = "static/img"
 
 # Used by PIL image manager
 app.config["SECRET_KEY"] = os.urandom(24)
