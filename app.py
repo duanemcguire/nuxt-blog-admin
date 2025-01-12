@@ -5,9 +5,9 @@
 # By linking the repository to a netlify deploy this app opens
 #   admin to the non-techie and the lazy techie.
 # ------------------------------------------------------
-
 from flask import Flask, flash, render_template, request
-from flask_uploads import IMAGES, UploadSet, configure_uploads
+from flask_uploads import IMAGES
+from flask_uploads import UploadSet, configure_uploads
 from datetime import datetime
 import urllib.request
 import os, glob, base64
@@ -23,6 +23,9 @@ from PIL import Image
 import shortuuid
 from inflection import parameterize
 import time
+from dotenv import load_dotenv 
+# loading variables from .env file
+load_dotenv() 
 
 app = Flask(__name__)
 
@@ -32,6 +35,7 @@ gToken = environ.get("GTOKEN")
 
 # repository name saved as environment variable
 repository = environ.get("REPO")
+print(repository)
 
 # dir references the content directory of blog posts
 # for duaneblog, that is "content/blog"
@@ -83,7 +87,7 @@ def process_new_photo(upImage, upCaption, path, photoset, makeThumb=False):
     f = open(f"{photodestfull}/{filename}", "rb")
     thispic = f.read()
     repo = g.get_repo(repository)
-    repo.create_file(f"static{photoInstance['path']}", "app", thispic, branch="main")
+    repo.create_file(f"{photoInstance['path']}", "app", thispic, branch="main")
     if makeThumb:
         create_thumbnail(filename)
         photoInstance["thumbnail"] = "True"
@@ -100,7 +104,7 @@ def create_thumbnail(filename):
     newThumb = True
     try:
         contents = repo.get_contents(
-            f"static{blog['imagepath']}/thumb/{filename}", ref="main"
+            f"{blog['imagepath']}/thumb/{filename}", ref="main"
         )
         if contents:
             # the thumbnail is already present.
@@ -117,7 +121,7 @@ def create_thumbnail(filename):
             fn = filepath.split("/").pop
             try:
                 contents = repo.get_contents(
-                    f"static{blog['imagepath']}/thumb/{fn}", ref="main"
+                    f"{blog['imagepath']}/thumb/{fn}", ref="main"
                 )
                 repo.delete_file(contents.path, "app", contents.sha, branch="main")
             except Exception as err:
@@ -144,7 +148,7 @@ def create_thumbnail(filename):
         thispic = f.read()
         try:
             repo.create_file(
-                f"static{blog['imagepath']}/thumb/{filename}",
+                f"{blog['imagepath']}/thumb/{filename}",
                 "app",
                 thispic,
                 branch="main",
@@ -167,18 +171,7 @@ def init_working_dir(path):
         last_path = f.read()
     if path != last_path:
         # Last used for a different path
-        # Re-initialize the directory
-
-        # remove the existing images
-        filelist = glob.glob(photodestfull + "/*")
-        for filepath in filelist:
-            if not os.path.isdir(filepath):
-                os.remove(filepath)
-
-        # write the new path to path.txt
-        f = open(path_text_file, "w")
-        f.write(path)
-        f.close()
+        # Re-initialize the directory/post-new
 
         # remove the existing thumbnail(s)
         thumbpath = f"{photodestfull}/thumb"
@@ -197,7 +190,7 @@ def github_save_file(path):
     if not exists(photo_path):
         try:
             g = Github(gToken)
-            g_path = f"static{path}"
+            g_path = path
             repo = g.get_repo(repository)
             content_encoded = repo.get_contents(
                 urllib.parse.quote(g_path), ref="main"
@@ -314,11 +307,8 @@ def edit_page(path=""):
 
     repo = g.get_repo(repository)
     attributes = []
-    print("path",path)
     if path == "":
         path = request.args.get("f")
-    print("path",path)
-
     init_working_dir(path)
     ldir = misc_content["dir"] + "/"
     filename = path.split(ldir)[1].split(".md")[0]
@@ -332,7 +322,7 @@ def edit_page(path=""):
         if k != "path":
             attributes.append((k,v[0]))        
 
-
+    
     return render_template("edit-page.html", **locals())
 
 @app.route("/add")
@@ -393,7 +383,7 @@ def post_new_file():
     fc = fc + "photoset: " + p + "\n"
     fc = fc + "---\n"
     fc = fc + filecontent
-
+    print(f"fc:{fc}")
     # save the markdown file to the repository.
     repo.create_file(path, "app", fc, branch="main")
     flash(path + " created")
@@ -408,6 +398,8 @@ def post_file():
 
     repo = g.get_repo(repository)
     path = request.form["path"]
+    print(f"form:{request.form}")
+    print(f"path: {path}")
     file = repo.get_contents(path)
     filecontent = request.form["filecontent"]
     photoset = []
@@ -515,14 +507,14 @@ def delete_file(path=""):
         # delete the images
         for photodef in photoset:
             try:
-                repoPath = f"static{photodef['path']}"
+                repoPath = photodef['path']
                 file = repo.get_contents(repoPath)
                 contents = repo.get_contents(repoPath, ref="main")
                 repo.delete_file(contents.path, "app", contents.sha, branch="main")
                 if "thumbnail" in photodef.keys():
                     if photodef["thumbnail"] == "True":
                         fn = photodef["path"].split("/").pop()
-                        repoPath = f"static{blog['imagepath']}/thumb/{fn}"
+                        repoPath = f"{blog['imagepath']}/thumb/{fn}"
                         contents = repo.get_contents(repoPath, ref="main")
                         repo.delete_file(
                             contents.path, "app", contents.sha, branch="main"
@@ -542,3 +534,6 @@ def delete_file(path=""):
 
     # display main page
     return get_repo()
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)

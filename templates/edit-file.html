@@ -18,13 +18,15 @@
   </thead>
   {% for k,v in md.Meta.items() %}
     {% if k != 'photoset' and  k != 'photocaption' %}
-      {% if k == 'id' or k == 'path' %}
+      {% if k == 'id' %}
         <input type="hidden" value='{{v[0].strip('"')}}' name="{{k}}">
       {% else %}
-        <tr>
-          <td>{{k}}</td>
-          <td><input type="text" value='{{v[0].strip('"')}}' name="{{k}}">
-        </tr>
+        {%if k != 'path' %}
+          <tr>
+            <td>{{k}}</td>
+            <td><input type="text" value='{{v[0].strip('"')}}' name="{{k}}">
+          </tr>
+        {% endif %}  
       {% endif %}
     {% endif %}
   {% endfor %}
