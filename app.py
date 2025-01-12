@@ -535,5 +535,15 @@ def delete_file(path=""):
     # display main page
     return get_repo()
 
+@app.route("/publish")
+def publish():
+    repo = g.get_repo(repository)
+    file = repo.get_contents("deploy_it/deploy_timestamp.txt") 
+    fc =  f'{datetime.now():%Y-%m-%d %H:%M:%S%z}'  
+    repo.update_file("deploy_it/deploy_timestamp.txt", "saved by app", fc, file.sha)
+    flash("Publishing the site")
+    return get_repo()
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
