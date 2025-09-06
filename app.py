@@ -23,9 +23,9 @@ from PIL import Image
 import shortuuid
 from inflection import parameterize
 import time
-from dotenv import load_dotenv 
+#from dotenv import load_dotenv 
 # loading variables from .env file
-load_dotenv() 
+#load_dotenv() 
 
 app = Flask(__name__)
 
